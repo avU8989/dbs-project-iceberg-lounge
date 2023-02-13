@@ -1,0 +1,94 @@
+Das Projekt verwendet JAVA + PHP. 
+
+JAVA
+In Java wird Intellij verwendet mit OJDCB und beim einfachen ausführen der InsertTest und SelectTest erfolgt der Insert bzw. Select.
+Die Pfade von den CSV-Files müssen entsprechend geändert werden. 
+
+PHP
+Die PHP Dateien sind auf dem Almighty. Die Datenbankverbindung erfolgt über den Universitäts Server und man muss die Verbindung beim DatabaseHelper anpassen.
+Der DatabaseHelper wurde übernommen, angepasst und erweitert. 
+Auf der Website kann sich der User anmelden und einloggen. 
+
+Falls er nicht angmeldet ist, kann er nicht in den Warenkorb hineinschauen oder Produkte zum Einkaufswagen hinzufügen. -> Weiterleitung auf die error.php
+
+Falls er sich erfolgreich anmelden/einloggen konnte, wird der User zur logged_in.php weitergeleitet und es werden Funktionen wie (addShoppingCart.php, changePassword.php,
+deleteAccount.php, deleteProductFromShoppingCart.php, shoppingcart.php) freigeschaltet.
+
+TEST-Login:
+e-mail: vengeance88@outlook.com
+passwort: hello123
+
+Man kann aber auch einen User erstellen. -> beachten bei den Inputwerten, dass sie richtig eingegeben werden(gültige Email, gleiches Passwort)
+Der Pfad von den Bildern im Products Folder sollte vielleicht auch entsprechend geändert werden. 
+
+CRUD CHECK und Funktionen der einzelnen .php Dateien
+signup.php
+Die Inputs werden von der Website mit der POST-Methode übernommen und in der .php Datei den gegebenen Variablen zugewiesen. Dazu erfolgen Integritätschecks,
+ob alle Daten entsprechend ausgefüllt wurden. Falls bei den Inputs alles gestimmt hat, geht es zum Einfügen in die Datenbank. Es wird ein gehashtes Passwort
+mit der funktion password_hash() erstellt, bei der die Passwörter mit PASSWORD_BCRYPT gehasht werden. Zuerst wird in die Person eingefügt. Vor dem Einfügen
+springt der Trigger an und überprüft, ob es den Vornamen in Kombination mit dem Nachnamen und der Straße schon gibt. Dann suchen wir in
+Datenbank nach der Person mit den Vornamen bzw. Nachnamen und holen uns das Personenobjekt. Es wird dann in die Kundentabelle mit der 'PERSON_ID' vom Personen-
+objekt eingefügt. Anschließend suchen wir nach der Kundennummer von der Tabelle KUNDE in der Datenbank mit dem PERSON_ID Parameter. 
+Am Ende erfolgt das Einfügen in den Benutzer mit Benutzernamen, gehashten Passwort, email, Default Benutzerguthaben von 0 und der jeweiligen Kundennummer.->1.CREATE
+Wennd er User sich einloggen konnte landet er auf die logged_in.php Seite.
+
+login.php
+Die Inputs werden von der Website mit der POST-Methode übernommen und in der .php Datei den gegebenen Variablen zugewiesen. Der User wird mithilfe des DatabaseHelpers mit der Email gesucht. 
+Wir schauen wiederum mit einer Query wieviele Produkte der User im Einkaufswagen hatte, um dent Counter neben dem Einkaufswagen-Icon zu aktualisieren. Das Passwort wird verifiziert mit dem gehashten
+Passwort in der Datenbank. Falls alles gepasst hat, setzten wir alle Parameter für die $_SESSION und werden dann in die logged_in.php Page weitergeleitet. Andernfalls werden wir in die errorLogin.php weitergeleitet.
+
+addShoppingCart.php
+Die Inputs werden von der Website mit der POST-Methode übernommen und in der .php den gegebenen Variablen zugewiesen. Falls der Benutzer nicht eingeloggt ist(
+!is_checked_in()), dann landet er auf die error.php Seite. 
+Falls der input "add_to_card" und die Artikelnummer über POST gegeben ist, schauen wir ob das Produkt in unserer Datenbank existiert. ->1.READ? 
+Wenn ja, dann suchen wir in unserer Datenbank, ob das Produkt im Warenkorb schon enthalten ist.->2.READ?
+Ist das Produkt im Warenkorb enthalten, dann wird nur die Menge vom Produkt in der Tabelle WARENKORB durch ein UPDATE Statement geändert. ->1.UPDATE
+Wenn nein, dann wird das Produkt in die Tabelle WARENKORB durch ein INSERT Statement eingefügt. ->2.CREATE
+
+deleteProductFromShoppingCart.php
+Die Inputs werden von der Website mit der POST-Methode übernommen und in der .php den gegebenen Variablen zugewiesen. Falls der Parameter 'delete_from_card' gesetzt wurde, checkt die .php Datei wie groß die Menge der Produkte im
+Warenkorb ist. Dann wird die Menge um eine Einheit vermindert durch ein UPDATE Statement in der Tabelle WARENKORB geändert. Dabei erfolgt in der Funktion updateQuantityinShoppingCart($quantity,$customer_id,$product) eine Stored
+Procedure mit dem Parameter Artikelnummer(integer), wo eine Query durchgeführt wird, ob schaut im Warenkorb ein Produkt die Menge 0 hat. Falls ja, dann wird von der Tabelle Warenkorb dieser Artikel gelöscht und im Einkaufswagen auf der
+Website verschwindet dieser auch.->1.DELETE ? 
+
+product.php
+Es wird von der Website der INPUT mit der GET-Methode übernommen. Der Input ist hier die Artikelnummer, welche man in der URL auch sehen kann. Und sucht dann auch mit einer Query in der Datenbank das Produkt. Wir suchen ebenfalls
+die Bilder-Files für das jeweilige Produkt und geben die Bilder mit einer Schleife wieder aus. ->READ
+
+deleteAccount.php
+Die Inputs werden von der Website mit der POST-Methode übernommen und in der .php den gegebenen Variablen zugewiesen. Falls der Parameter 'delete_account' gesetzt wurde erfolgt die Löschung in der Tabelle Benutzer mit der entsprechenden 
+PERSON_ID. Und der User erhält die Meldung, dass der Account erfolgreich gelöscht wurde.->2.DELETE
+
+changePassword.php
+Die Inputs werden von der Website mit der POST-Methode übernommen und in der .php den gegebenen Variablen zugewiesen. Falls die zwei eingebenen Passwörter nicht übereinstimmten kommt eine Fehlermeldung.
+Falls das alte Passwort nicht mit dem Passwort von der Datenbank übereinstimmt, wird der User zur errorLogin.php Seite weitergeleitet. Das neue Passwort wird gehasht und in der Datenbank wird das Passwort in der Tabelle BENUTZER
+mit einem UPDATE Statement geändert. ->User wird weitergeleitet zur logged_in.php->2.UPDATE
+
+bestseller.php
+Mithilfe des DatabaseHelper.php werden sämtliche Produkte von der Datenbank in einen Array aufgenommen. In der HTML Sektion verwenden wir eine Schleife und durchgehen alle Produkte die in dieses Array geladen wurde.
+
+header.php
+Ist unserer Header Template samt der Navigationbar.
+
+footer.php
+Ist unsere Footer Template.
+
+logout.php 
+Ermöglicht das Logout und zerstört die gesamte SESSION.
+
+popup.php
+Enthält die Form für das PopUp.
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
